@@ -6,7 +6,7 @@
 set -e
 
 echo "Installing VirtualBox as the virtualization layer..."
-apt install virtualbox virtualbox-ext-pack
+apt install -y virtualbox virtualbox-ext-pack
 
 echo "Installing Minikube..."
 wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
