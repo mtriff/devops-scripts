@@ -14,7 +14,6 @@ cd "${0%/*}"
 pushd root/ca > /dev/null
 echo -e "\e[32mCreating root certificate configuration...\e[0m"
 sed 's?DIR_FOR_ROOT_CA_GOES_HERE?'`pwd`'?g' openssl.template.cnf > openssl.cnf 
-touch root/ca/index.txt
 
 if [ ! -f private/ca.key.pem ]; then
   echo -e "\e[32mCreating the root key...\e[0m"

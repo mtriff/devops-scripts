@@ -3,3 +3,7 @@ openssl.cnf
 *.pem
 certificates/**/index.txt*
 certificates/**/serial*
+*.crt
+
+# Kubernetes configurations
+**/config

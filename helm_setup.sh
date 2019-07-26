@@ -9,23 +9,20 @@
 set -e
 
 # Create Helm and Tiller Service Accounts, Roles, RoleBindings
+echo -e "\e[32mCreating namespaces, roles, service accounts, etc in the cluster...\e[0m"
 kubectl create -f cluster-manifest.yaml
 
-# Create Certificate Authority to enable TLS communiction
+# Create Certificate Authority, Tiller and Helm certificates to enable TLS communication
+echo -e "\e[32mCreating certificates for secure intra-cluster communication...\e[0m"
 ./certificates/generate_certificates.sh
 
-## https://helm.sh/docs/using_helm/#generating-certificate-authorities-and-certificates
-## https://jamielinux.com/docs/openssl-certificate-authority/create-the-root-pair.html
-
-# Generate Tiller certificates
-
-# Generate Helm client certificates
-
 # Store certificate keys in a key manager
-# https://artisticcheese.wordpress.com/2018/01/04/storing-arbitrary-text-file-in-azure-key-vault-as-secrets-ssh-keys-cer-files-etc/
+# TODO: Call certificates/store_keys.sh
 
 # Deploy Tiller
+echo -e "\e[32mDeploying Tiller to DEV namespace...\e[0m"
 helm init --service-account tiller \
+  --override 'spec.template.spec.containers[0].command'='{/tiller,--storage=secret}' \
   --tiller-namespace dev \
   --tiller-tls \
   --tiller-tls-cert certificates/client/certs/dev.tiller.cert.pem \
@@ -33,7 +30,9 @@ helm init --service-account tiller \
   --tiller-tls-verify \
   --tls-ca-cert certificates/intermediate/certs/ca-chain.cert.pem
 
+echo -e "\e[32mDeploying Tiller to PROD namespace...\e[0m"
 helm init --service-account tiller \
+  --override 'spec.template.spec.containers[0].command'='{/tiller,--storage=secret}' \
   --tiller-namespace prod \
   --tiller-tls \
   --tiller-tls-cert certificates/client/certs/prod.tiller.cert.pem \
@@ -42,4 +41,7 @@ helm init --service-account tiller \
   --tls-ca-cert certificates/intermediate/certs/ca-chain.cert.pem
 
 # Create a Kubeconfig file to specify access for the Helm client
+NAMESPACE=devops ./get_kubeconfig.sh
 
+echo -e "\e[Helm has been successfully initialized!\e[0m"
+echo -e "\e[Make sure to use the '--tls' flag whenever using the 'helm' command\e[0m"
