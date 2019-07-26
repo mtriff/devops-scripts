@@ -1,3 +1,5 @@
 # Do not commit any certificates or keys
 openssl.cnf
 *.pem
+certificates/**/index.txt*
+certificates/**/serial*
