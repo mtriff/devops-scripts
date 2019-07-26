@@ -3,6 +3,8 @@
 # Install Local Tools for DevOps Work
 # NOTE: Run this script with sudo
 
+set -e
+
 echo "Installing Azure command-line tools..."
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 

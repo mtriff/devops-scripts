@@ -1,0 +1,113 @@
+# Namespaces
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: devops
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: dev
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: prod
+---
+# ServiceAccounts
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: helm
+  namespace: devops
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: tiller
+  namespace: dev
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: tiller
+  namespace: prod
+---
+# RoleBindings
+#  Limit Tiller accounts to permissions necessary to deploy and manage releases
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tiller-manager
+  namespace: dev
+rules:
+- apiGroups: ["", "batch", "extensions", "apps"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tiller-manager
+  namespace: prod
+rules:
+- apiGroups: ["", "batch", "extensions", "apps"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+# RoleBindings
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tiller-binding
+  namespace: dev
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: dev
+roleRef:
+  kind: Role
+  name: tiller-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tiller-binding
+  namespace: prod
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: prod
+roleRef:
+  kind: Role
+  name: tiller-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+# ClusterRole
+# Limit Helm to permissions neccessary to communicate with Tiller
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: helm-clusterrole
+rules:
+  - apiGroups: [""]
+    resources: ["pods/portforward"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "get"]
+---
+# ClusterRoleBinding
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: helm-clusterrolebinding
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: helm-clusterrole
+subjects:
+  - kind: ServiceAccount
+    name: helm
+    namespace: devops
